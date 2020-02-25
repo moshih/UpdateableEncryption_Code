@@ -9,87 +9,6 @@
 #include "aes_gcm.h"
 #include "AE_Nested_AES.h"
 
-// This is a test for correctness
-int main_test_correctness() {
-    printf("Start...\n");
-
-    printf("RHO is %d NU is %lu\n", RHO, NU);
-
-    int size = 128;
-    int t = 100;
-    int buffer_length = sizeof(AE_ctx_header) + 128 + t * (2 * RHO + NU);
-    printf("Buffer length is %d\n", buffer_length);
-    uint8_t * message = (int8_t * ) malloc(size);
-    RAND_bytes(message, size);
-    uint8_t * decrypted_message1 = (int8_t * ) malloc(buffer_length);
-
-    ct_hat_data_en ciphertext_hat1;
-    uint8_t * ciphertext1 = (int8_t * ) malloc(buffer_length);
-    ct_hat_data_en ciphertext_hat2;
-    uint8_t * ciphertext2 = (int8_t * ) malloc(buffer_length);
-
-    AE_key ae_key1, ae_key2;;
-    AE_KeyGen( & ae_key1, t);
-
-    int ctx_length = AE_Encrypt( & ae_key1, message, & ciphertext_hat1, ciphertext1, size);
-    AE_Decrypt( & ae_key1, & ciphertext_hat1, ciphertext1, decrypted_message1, ctx_length);
-
-    int wrong = 0;
-    for (int i = 0; i < size; i++) {
-        if (message[i] != decrypted_message1[i]) {
-            printf("ERROR: MESSAGE NOT THE SAME\n\n");
-            wrong++;
-            break;
-        }
-    }
-
-    for (int runs = 0; runs < t; runs++) {
-        if (runs % 2 == 0) {
-            AE_KeyGen( & ae_key2, t);
-
-            delta_token_data delta;
-            AE_ReKeyGen( & ae_key1, & ae_key2, & ciphertext_hat1, & delta);
-
-            int reencrypt_length = AE_ReEncrypt( & delta, & ciphertext_hat1, ciphertext1, & ciphertext_hat2, ciphertext2, ctx_length);
-
-            AE_Decrypt( & ae_key2, & ciphertext_hat2, ciphertext2, decrypted_message1, ctx_length);
-
-            wrong = 0;
-            for (int i = 0; i < size; i++) {
-                if (message[i] != decrypted_message1[i]) {
-                    printf("ERROR: MESSAGE NOT THE SAME\n\n");
-                    wrong++;
-                    break;
-                }
-            }
-        } else {
-            AE_KeyGen( & ae_key1, t);
-
-            delta_token_data delta;
-            AE_ReKeyGen( & ae_key2, & ae_key1, & ciphertext_hat2, & delta);
-
-            int reencrypt_length = AE_ReEncrypt( & delta, & ciphertext_hat2, ciphertext2, & ciphertext_hat1, ciphertext1, ctx_length);
-
-            AE_Decrypt( & ae_key1, & ciphertext_hat1, ciphertext1, decrypted_message1, ctx_length);
-
-            wrong = 0;
-            for (int i = 0; i < size; i++) {
-                if (message[i] != decrypted_message1[i]) {
-                    printf("ERROR: MESSAGE NOT THE SAME\n\n");
-                    wrong++;
-                    break;
-                }
-            }
-        }
-    }
-
-    free(message);
-    free(decrypted_message1);
-    free(ciphertext1);
-    free(ciphertext2);
-    printf("Done...\n");
-}
-
 // This is a function for measuring timings
 int main_timings() {
     printf("Start...\n");
@@ -135,18 +54,6 @@ int main_timings() {
         int ctx_length = AE_Encrypt( & ae_key1, message, & ciphertext_hat1, ciphertext1, size);
         end = clock();
         encrypt_cycles += (double)(end - begin);
-
-        /*
-        // AE_Decrypt
-        AE_Decrypt(&ae_key1, &ciphertext_hat1, ciphertext1, decrypted_message1, ctx_length);
-
-        for (int i=0; i<size; i++){
-          if (message[i] != decrypted_message1[i]){
-            printf("ERROR: MESSAGE NOT THE SAME\n\n");
-            break;
-          }
-        }
-        */
 
         for (int re_encrypts = 0; re_encrypts < total_re_encrypts; re_encrypts++) {
             if (re_encrypts % 2 == 0) {
@@ -200,7 +107,6 @@ int main_timings() {
     regen_cycles /= CLOCKS_PER_SEC;
     re_encrypt_cycles /= CLOCKS_PER_SEC;
     for (int i = 0; i < 128; i++) decrypt_cycles[i] /= CLOCKS_PER_SEC;
-    //decrypt_cycles /=CLOCKS_PER_SEC;
 
     printf("NESTED AES GCM Size:%d Runs:%u\n gen_key:    %f %d\n encrypt:    %f %d\n regen_key:  %f %d\n re_encrypt: %f %d\n\n ",
         size, runs,
@@ -221,6 +127,5 @@ int main_timings() {
 }
 
 int main() {
-    main_test_correctness();
     main_timings();
 }
