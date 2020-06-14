@@ -92,7 +92,7 @@ void poly_uniform_ref_poly_28(poly_28 *a, const unsigned char *seed)
             uint32_t sample_2 = ((uint32_t) buf[j + 4] | ((uint32_t) buf[j + 5] << 8) | ((uint32_t) buf[j + 6] << 16) | ((uint32_t)(buf[j + 3] &240) << 20));
             if (sample_2 < Q)
             {
-                a->coeffs[coeffs_written] = sample_1;
+                a->coeffs[coeffs_written] = sample_2;
                 coeffs_written++;
             }
         }
@@ -466,6 +466,13 @@ void lwe_gen_key(poly_28 *key_point_poly)
     uint8_t key_seed[NEWHOPE_SYMBYTES];
     RAND_bytes(key_seed, NEWHOPE_SYMBYTES);
     poly_uniform_ref_poly_28(key_point_poly, key_seed);
+}
+
+void lwe_gen_key_avx(poly_28 *key_point_poly)
+{
+    uint8_t key_seed[NEWHOPE_SYMBYTES];
+    RAND_bytes(key_seed, NEWHOPE_SYMBYTES);
+    poly_uniform_ref_poly_28_avx(key_point_poly, key_seed);
 }
 
 /*************************************************
@@ -1125,6 +1132,41 @@ int UAE_ReKeygen(int8_t *AE_key1, int8_t *AE_key2, UAE_lwe_ctx_header *ciphertex
     return 0;
 }
 
+int UAE_ReKeygen_avx(int8_t *AE_key1, int8_t *AE_key2, UAE_lwe_ctx_header *ciphertext_hat, UAE_lwe_delta *delta)
+{
+    UAE_lwe_data_header data_header;
+
+    int decrypted_ctx_header_length = gcm_decrypt(ciphertext_hat->ctx, sizeof(UAE_lwe_data_header),
+        ciphertext_hat->tag,
+        AE_key1,
+        ciphertext_hat->iv, IV_LEN,
+        (uint8_t*) &data_header);
+    if (decrypted_ctx_header_length != sizeof(UAE_lwe_data_header))
+    {
+        printf("ERROR decrypting header\n");
+        return -1;
+    }
+
+    poly_28 poly_key1;
+    memcpy(&poly_key1, &data_header.poly_key, sizeof(poly_28));
+    lwe_gen_key_avx(&data_header.poly_key);
+
+    for (int i = 0; i < NEWHOPE_N; i++) delta->poly_key.coeffs[i] = barrett_reduce(data_header.poly_key.coeffs[i] - poly_key1.coeffs[i]);
+
+    RAND_bytes(delta->ctx_header.iv, IV_LEN);
+    int ctx_header_length = gcm_encrypt((uint8_t*) &data_header, sizeof(UAE_lwe_data_header),
+        AE_key2,
+        delta->ctx_header.iv, IV_LEN,
+        delta->ctx_header.ctx,
+        delta->ctx_header.tag);
+    if (ctx_header_length != sizeof(UAE_lwe_data_header))
+    {
+        printf("ERROR encrypting header\n");
+        return -1;
+    }
+    return 0;
+}
+
 /*************************************************
  *Name:        UAE_ReEncrypt
  *
@@ -1167,7 +1209,7 @@ int UAE_ReEncrypt(UAE_lwe_delta *delta,
 int UAE_Encrypt_avx(int8_t *AE_key, uint8_t *message, UAE_lwe_ctx_header *ciphertext_hat, uint8_t *ciphertext, unsigned int size)
 {
     UAE_lwe_data_header data_header;
-    lwe_gen_key(&data_header.poly_key);
+    lwe_gen_key_avx(&data_header.poly_key);
 
     int padded_size = pad_array(message, size);
 

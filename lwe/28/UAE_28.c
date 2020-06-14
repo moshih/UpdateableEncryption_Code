@@ -5,7 +5,7 @@
 
 void main_uae_timings() {
     printf("Start...\n");
-    int size = 102400;
+    int size = 4096;
     int runs = 1000;
     int total_re_encrypts = 128;
 
@@ -121,7 +121,7 @@ void main_uae_timings() {
 
 void main_uae_timings_avx() {
     printf("Start...\n");
-    int size = 102400;
+    int size = 4096;
     int runs = 1000;
     int total_re_encrypts = 128;
 
@@ -168,7 +168,7 @@ void main_uae_timings_avx() {
                 // ReKeyGen
                 begin = clock();
                 UAE_Keygen(AE_key2);
-                rekeygen_output = UAE_ReKeygen(AE_key1,AE_key2, &ctx_hat1, &delta1);
+                rekeygen_output = UAE_ReKeygen_avx(AE_key1,AE_key2, &ctx_hat1, &delta1);
                 end = clock();
                 regen_cycles += (double)(end - begin);
 
@@ -235,7 +235,7 @@ void main_uae_timings_avx() {
     printf("Done...\n");
 }
 
-void main(){
+void main (){
     main_uae_timings();
     main_uae_timings_avx();
 }

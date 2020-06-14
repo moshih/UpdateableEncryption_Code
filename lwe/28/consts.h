@@ -33,7 +33,7 @@ typedef struct{
 #define QINV_S32 QINV_S64  // q^(-1) mod 2^32
 
 #define BARRETT_REDUCE_FACTOR 58
-#define ZETA_INV_FINAL 193449472
+#define ZETA_INV_FINAL 193449472 //zeta first is 409584
 
 #define NOISE_MAX 352
 #define NOISE_MAX_FACTOR 11

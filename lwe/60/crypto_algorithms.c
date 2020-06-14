@@ -72,7 +72,7 @@ void poly_uniform_ref_poly_60(poly_60 *a, const unsigned char *seed)
                 ((uint64_t)(buf[j + 7] &240) << 52));
             if (sample_2 < Q)
             {
-                a->coeffs[coeffs_written] = sample_1;
+                a->coeffs[coeffs_written] = sample_2;
                 coeffs_written++;
             }
         }

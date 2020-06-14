@@ -50,6 +50,7 @@ void create_product_point(poly_28 *key_point_poly,poly_28 *product_point_poly, u
 void create_product_point_avx(poly_28 *key_point_poly,poly_28 *product_point_poly, unsigned char*point_seed);
 
 void lwe_gen_key(poly_28 *key_point_poly);
+void lwe_gen_key_avx(poly_28 *key_point_poly);
 
 void kh_prf_encrypt(poly_28 *key_point_poly,uint8_t *buf, unsigned int size);
 void kh_prf_re_encrypt(poly_28 *key_point_poly_1, poly_28 *key_point_poly_2,  uint8_t *test_array, unsigned int size);
@@ -70,6 +71,7 @@ void UAE_Keygen(int8_t *AE_key);
 int UAE_Encrypt(int8_t *AE_key,uint8_t *message, UAE_lwe_ctx_header* ciphertext_hat, uint8_t* ciphertext, unsigned int size);
 int UAE_Decrypt(int8_t *AE_key,uint8_t *decrypted_message, UAE_lwe_ctx_header* ciphertext_hat, uint8_t* ciphertext, unsigned int size);
 int UAE_ReKeygen(int8_t *AE_key1,int8_t *AE_key2, UAE_lwe_ctx_header* ciphertext_hat, UAE_lwe_delta* delta);
+int UAE_ReKeygen_avx(int8_t *AE_key1, int8_t *AE_key2, UAE_lwe_ctx_header *ciphertext_hat, UAE_lwe_delta *delta);
 int UAE_ReEncrypt(UAE_lwe_delta* delta, 
   UAE_lwe_ctx_header* ciphertext_hat1, uint8_t* ciphertext1, 
   UAE_lwe_ctx_header* ciphertext_hat2, uint8_t* ciphertext2, unsigned int size);

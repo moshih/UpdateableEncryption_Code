@@ -6,7 +6,6 @@
 #include "consts.h"
 #endif
 
-#if (MODULO == 268409857)
 #include "ntt_avx.h"
 
 int32_t montgomery_reduce(int64_t a);
@@ -27,4 +26,3 @@ void invntt(int32_t r[NEWHOPE_N]);
 void poly_ntt(poly_28 *r);
 void poly_invntt(poly_28 *r);
 
-#endif

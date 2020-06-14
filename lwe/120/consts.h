@@ -28,6 +28,7 @@ typedef struct{
 #define half_block 1152921504606846975
 #define AND_BLOCK (__int128)half_block + ((__int128)half_block<<60)
 
+// 2^120-Q = MODP
 #define MODP 102399
 
 #define Q_LOW 1152921504606744577

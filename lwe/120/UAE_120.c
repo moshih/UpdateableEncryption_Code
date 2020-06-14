@@ -6,7 +6,7 @@
 void main()
 {
     printf("Start...\n");
-    int size = 102400;
+    int size = 4096;
     int runs = 1000;
     int total_re_encrypts = 128;
 
